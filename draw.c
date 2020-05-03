@@ -7,6 +7,7 @@
 #include "draw.h"
 #include "matrix.h"
 #include "gmath.h"
+#include "symtab.h"
 
 /*======== void draw_scanline() ==========
   Inputs: struct matrix *points
@@ -163,9 +164,9 @@ void add_polygon(struct matrix * polygons,
   Goes through polygons 3 points at a time, drawing
   lines connecting each points to create bounding triangles
   ====================*/
-void draw_polygons( struct matrix * polygons, screen s, zbuffer zb, color c,
-                    double * view, color ambient, color point, double * light,
-                    double * areflect, double * dreflect, double * sreflect) {
+void draw_polygons( struct matrix * polygons, screen s, zbuffer zb, 
+                    double * view, double light[2][3], color ambient,
+                    struct constants * reflect) {
     int lastcol = polygons -> lastcol;
 
     if (lastcol < 3) {
@@ -178,7 +179,7 @@ void draw_polygons( struct matrix * polygons, screen s, zbuffer zb, color c,
 
         if (normal[2] > 0) {
             // get color value only if front facing
-            color clight = get_lighting(normal, view, ambient, point, light, areflect, dreflect, sreflect);
+            color clight = get_lighting(normal, view, ambient, light, reflect);
             scanline_convert(polygons, col, s, zb, clight);
         }
     }

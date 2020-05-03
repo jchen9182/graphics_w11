@@ -1,34 +1,51 @@
-OBJECTS = main.o draw.o display.o matrix.o parser.o gmath.o stack.o
-CFLAGS = -Wall
+OBJECTS = symtab.o print_pcode.o matrix.o my_main.o display.o draw.o gmath.o stack.o
+CFLAGS = -g
 LDFLAGS = -lm
 CC = gcc
 
-run: all
-	./main script
+run: parser
+	./mdl face.mdl
 
-all: $(OBJECTS)
-	$(CC) -o main $(OBJECTS) $(LDFLAGS)
+parser: lex.yy.c y.tab.c y.tab.h $(OBJECTS)
+	$(CC) -o mdl $(CFLAGS) lex.yy.c y.tab.c $(OBJECTS) $(LDFLAGS)
 
-main.o: main.c display.h draw.h ml6.h matrix.h parser.h stack.h
-	$(CC) -c main.c
+lex.yy.c: mdl.l y.tab.h
+	flex -I mdl.l
 
-draw.o: draw.c draw.h display.h ml6.h matrix.h gmath.h
-	$(CC) $(CFLAGS) -c draw.c
+y.tab.c: mdl.y symtab.h parser.h
+	bison -d -y mdl.y
+
+y.tab.h: mdl.y
+	bison -d -y mdl.y
+
+symtab.o: symtab.c parser.h matrix.h
+	$(CC) -c $(CFLAGS) symtab.c
+
+print_pcode.o: print_pcode.c parser.h matrix.h
+	$(CC) -c $(CFLAGS) print_pcode.c
+
+matrix.o: matrix.c matrix.h
+	$(CC) -c $(CFLAGS) matrix.c
+
+my_main.o: my_main.c parser.h print_pcode.c matrix.h display.h ml6.h draw.h stack.h
+	$(CC) -c $(CFLAGS) my_main.c
 
 display.o: display.c display.h ml6.h matrix.h
 	$(CC) $(CFLAGS) -c display.c
 
-matrix.o: matrix.c matrix.h
-	$(CC) $(CFLAGS) -c matrix.c
+draw.o: draw.c draw.h display.h ml6.h matrix.h gmath.h
+	$(CC) $(CFLAGS) -c draw.c
 
-parser.o: parser.c parser.h matrix.h draw.h display.h ml6.h stack.h
-	$(CC) $(CFLAGS) -c parser.c
-
-gmath.o: gmath.c gmath.h matrix.h ml6.h
+gmath.o: gmath.c gmath.h matrix.h
 	$(CC) $(CFLAGS) -c gmath.c
 
 stack.o: stack.c stack.h matrix.h
 	$(CC) $(CFLAGS) -c stack.c
 
 clean:
-	rm *.o main *.png
+	rm y.tab.c y.tab.h
+	rm lex.yy.c
+	rm -rf mdl.dSYM
+	rm mdl somefile
+	rm *.o
+	rm *.png

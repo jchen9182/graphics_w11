@@ -5,6 +5,7 @@
 #include "gmath.h"
 #include "matrix.h"
 #include "ml6.h"
+#include "symtab.h"
 
 /*============================================
   IMPORANT NOTE
@@ -17,10 +18,23 @@
   ============================================*/
 
 // Lighting functions
-color get_lighting(double * normal, double * view, color ambient, color point, double * light, double * areflect, double * dreflect, double * sreflect) {
-	color a = calculate_ambient(ambient, areflect);
-	color d = calculate_diffuse(point, dreflect, normal, light);
-	color s = calculate_specular(point, sreflect, view, normal, light);
+color get_lighting(double * normal, double * view, color ambient, double light[2][3], struct constants * reflect) {
+	color point;
+	point.red = light[COLOR][RED];
+	point.green = light[COLOR][GREEN];
+	point.blue = light[COLOR][BLUE];
+
+	double lightspot[3];
+	lightspot[0] = light[LOCATION][0];
+	lightspot[1] = light[LOCATION][1];
+	lightspot[2] = light[LOCATION][2];
+
+	normalize(normal);
+	normalize(lightspot);
+
+	color a = calculate_ambient(ambient, reflect);
+	color d = calculate_diffuse(point, reflect, normal, lightspot);
+	color s = calculate_specular(point, reflect, view, normal, lightspot);
 
 	color i;
 
@@ -29,39 +43,41 @@ color get_lighting(double * normal, double * view, color ambient, color point, d
 	i.blue = a.blue + d.blue + s.blue;
 
 	limit_color(&i);
-
 	return i;
 }
 
-color calculate_ambient(color ambient, double * areflect) {
+color calculate_ambient(color ambient, struct constants * reflect) {
 	color a;
 
-	a.red = ambient.red * areflect[RED];
-	a.green = ambient.green * areflect[GREEN];
-	a.blue = ambient.blue * areflect[BLUE];
+	double reflect_red = reflect -> r[AMBIENT_R];
+	double reflect_green = reflect -> g[AMBIENT_R];
+	double reflect_blue = reflect -> b[AMBIENT_R];
+
+	a.red = ambient.red * reflect_red;
+	a.green = ambient.green * reflect_green;
+	a.blue = ambient.blue * reflect_blue;
 
 	return a;
 }
 
-color calculate_diffuse(color point, double * dreflect, double * normal, double * light) {
-	normalize(normal);
-	normalize(light);
-
+color calculate_diffuse(color point, struct constants * reflect, double * normal, double * light) {
 	double reflection = dot_product(normal, light);
 	if (reflection < 0) reflection = 0;
 	
 	color d;
 
-	d.red = point.red * dreflect[RED] * reflection;
-	d.green = point.green * dreflect[GREEN] * reflection;
-	d.blue = point.blue * dreflect[BLUE] * reflection;
+	double reflect_red = reflect -> r[DIFFUSE_R];
+	double reflect_green = reflect -> g[DIFFUSE_R];
+	double reflect_blue = reflect -> b[DIFFUSE_R];
+
+	d.red = point.red * reflect_red * reflection;
+	d.green = point.green * reflect_green * reflection;
+	d.blue = point.blue * reflect_blue * reflection;
 
 	return d;
 }
 
-color calculate_specular(color point, double * sreflect, double * view, double * normal, double * light) {
-	normalize(normal);
-	normalize(light);
+color calculate_specular(color point, struct constants * reflect, double * view, double * normal, double * light) {
 	normalize(view);
 
 	double costheta = dot_product(normal, view);
@@ -78,9 +94,15 @@ color calculate_specular(color point, double * sreflect, double * view, double *
 	
 	color s;
 
-	s.red = point.red * sreflect[RED] * pow(reflection, SPECULAR_EXP);
-	s.green = point.green * sreflect[GREEN] * pow(reflection, SPECULAR_EXP);
-	s.blue = point.blue * sreflect[BLUE] * pow(reflection, SPECULAR_EXP);
+	reflection = pow(reflection, SPECULAR_EXP);
+
+	double reflect_red = reflect -> r[SPECULAR_R];
+	double reflect_green = reflect -> g[SPECULAR_R];
+	double reflect_blue = reflect -> b[SPECULAR_R];
+
+	s.red = point.red * reflect_red * reflection;
+	s.green = point.green * reflect_green * reflection;
+	s.blue = point.blue * reflect_blue * reflection;
 
 	return s;
 }
