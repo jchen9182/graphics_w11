@@ -46,6 +46,6 @@ clean:
 	rm y.tab.c y.tab.h
 	rm lex.yy.c
 	rm -rf mdl.dSYM
-	rm mdl somefile
+	rm mdl
 	rm *.o
 	rm *.png
