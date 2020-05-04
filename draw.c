@@ -49,6 +49,7 @@ void draw_scanline( double x0, double z0, double x1, double z1, int y, double of
   Returns:
   Fills in polygon i by drawing consecutive horizontal (or vertical) lines.
   Color should be set differently for each polygon.
+  Includes Greg's pixel perfect scanning
   ====================*/
 void scanline_convert(struct matrix * points, int col, screen s, zbuffer zbuff, color c) {
     double ** matrix = points -> m;
@@ -100,8 +101,18 @@ void scanline_convert(struct matrix * points, int col, screen s, zbuffer zbuff, 
     double z2 = zm + mz2 * offy1;
     int y = ceil(yb);
 
-    while (y < ceil(ym)) {
+    int toggle = 1;
+    while (y < ceil(yt)) {
         double offx;
+
+        if (y == ceil(ym) && toggle) {
+            x1 = x2;
+            z1 = z2;
+            mx1 = mx2;
+            mz1 = mz2;
+            
+            toggle = 0;
+        }
 
         if (x0 > x1) {
             offx = ceil(x1) - x1;
@@ -113,21 +124,6 @@ void scanline_convert(struct matrix * points, int col, screen s, zbuffer zbuff, 
         x1 += mx1;
         z0 += mz0;
         z1 += mz1;
-        y++;
-    }
-    while (y < ceil(yt)) {
-        double offx;
-
-        if (x0 > x2) {
-            offx = ceil(x2) - x2;
-        }
-        else offx = ceil(x0) - x0;
-
-        draw_scanline(x0, z0, x2, z2, y, offx, s, zbuff, c);
-        x0 += mx0;
-        x2 += mx2;
-        z0 += mz0;
-        z2 += mz2;
         y++;
     }
 }
