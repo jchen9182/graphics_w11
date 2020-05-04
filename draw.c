@@ -106,7 +106,7 @@ void scanline_convert(struct matrix * points, int col, screen s, zbuffer zbuff, 
         if (x0 > x1) {
             offx = ceil(x1) - x1;
         }
-        offx = ceil(x0) - x0;
+        else offx = ceil(x0) - x0;
 
         draw_scanline(x0, z0, x1, z1, y, offx, s, zbuff, c);
         x0 += mx0;
@@ -121,7 +121,7 @@ void scanline_convert(struct matrix * points, int col, screen s, zbuffer zbuff, 
         if (x0 > x2) {
             offx = ceil(x2) - x2;
         }
-        offx = ceil(x0) - x0;
+        else offx = ceil(x0) - x0;
 
         draw_scanline(x0, z0, x2, z2, y, offx, s, zbuff, c);
         x0 += mx0;
